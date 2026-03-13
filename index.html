@@ -1,1 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ski Trip Emissions Calculator</title>
+  <style>
+    body{
+      margin:0;
+      padding:24px;
+      background:#f3f3f3;
+      font-family:Georgia, serif;
+      color:#222;
+    }
+    h1{
+      text-align:center;
+      font-size:56px;
+      font-weight:400;
+      margin:0 0 28px;
+    }
+    .card{
+      max-width:560px;
+      margin:0 auto;
+      padding:22px;
+      border:1px solid #d2d2d2;
+      border-radius:16px;
+      background:#fff;
+    }
+    h2{
+      margin:0 0 10px;
+      font-size:22px;
+      font-weight:400;
+    }
+    p.desc{
+      margin:0 0 20px;
+      color:#555;
+      line-height:1.5;
+      font-size:15px;
+    }
+    label{
+      display:block;
+      margin:16px 0 8px;
+      font-size:16px;
+    }
+    select,input,button{
+      width:100%;
+      box-sizing:border-box;
+      padding:12px 14px;
+      border:1px solid #c8c8c8;
+      border-radius:12px;
+      font-size:16px;
+      background:#fff;
+    }
+    button{
+      margin-top:22px;
+      cursor:pointer;
+    }
+    .result{
+      margin-top:22px;
+      padding:16px;
+      border-radius:12px;
+      background:#f8f8f8;
+      line-height:1.7;
+      min-height:72px;
+    }
+    .note{
+      margin-top:14px;
+      color:#666;
+      font-size:13px;
+      line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>calculator</h1>
 
+  <div class="card">
+    <h2>Trip Emissions Calculator</h2>
+    <p class="desc">Estimate vehicle emissions for trips to WSL, Cypress, or Grouse.</p>
+
+    <label for="destination">Destination</label>
+    <select id="destination">
+      <option value="wsl">WSL</option>
+      <option value="cypress">Cypress</option>
+      <option value="grouse">Grouse</option>
+    </select>
+
+    <label for="tripType">Trip type</label>
+    <select id="tripType">
+      <option value="oneway">One way</option>
+      <option value="roundtrip">Round trip</option>
+    </select>
+
+    <label for="vehicle">Vehicle</label>
+    <select id="vehicle">
+      <option value="compact">Compact Car</option>
+      <option value="sedan">Sedan</option>
+      <option value="suv">SUV</option>
+      <option value="pickup">Pickup Truck</option>
+      <option value="hybrid">Hybrid</option>
+    </select>
+
+    <label for="people">Number of people</label>
+    <input id="people" type="number" min="1" value="2">
+
+    <button id="calcBtn" type="button">Calculate</button>
+
+    <div id="result" class="result"></div>
+
+    <div class="note">
+      Distances are one-way estimates in km. Fuel use is estimated by vehicle type.
+    </div>
+  </div>
+
+  <script>
+    const destinations = {
+      wsl: 35,
+      cypress: 30,
+      grouse: 18
+    };
+
+    const vehicles = {
+      compact: { name: "Compact Car", lPer100km: 7.0 },
+      sedan:   { name: "Sedan", lPer100km: 8.5 },
+      suv:     { name: "SUV", lPer100km: 11.0 },
+      pickup:  { name: "Pickup Truck", lPer100km: 13.5 },
+      hybrid:  { name: "Hybrid", lPer100km: 5.0 }
+    };
+
+    const emissionFactor = 2.2017; // kg CO2e per litre gasoline
+
+    function calculateTripEmission() {
+      const destination = document.getElementById("destination").value;
+      const tripType = document.getElementById("tripType").value;
+      const vehicleKey = document.getElementById("vehicle").value;
+      const people = parseInt(document.getElementById("people").value, 10);
+      const result = document.getElementById("result");
+
+      if (!people || people < 1) {
+        result.innerHTML = "Please enter a valid number of people.";
+        return;
+      }
+
+      let distance = destinations[destination];
+      if (tripType === "roundtrip") distance *= 2;
+
+      const vehicle = vehicles[vehicleKey];
+      const litresUsed = distance * vehicle.lPer100km / 100;
+      const totalEmission = litresUsed * emissionFactor;
+      const perPersonEmission = totalEmission / people;
+
+      const destinationName =
+        document.getElementById("destination").options[document.getElementById("destination").selectedIndex].text;
+      const tripLabel = tripType === "roundtrip" ? "Round trip" : "One way";
+
+      result.innerHTML = `
+        <strong>Result</strong><br>
+        Destination: ${destinationName}<br>
+        Trip type: ${tripLabel}<br>
+        Vehicle: ${vehicle.name}<br>
+        Distance: ${distance.toFixed(1)} km<br>
+        Estimated fuel used: ${litresUsed.toFixed(2)} L<br>
+        Total emissions: <strong>${totalEmission.toFixed(2)} kg CO₂e</strong><br>
+        Per person: <strong>${perPersonEmission.toFixed(2)} kg CO₂e</strong>
+      `;
+    }
+
+    document.getElementById("calcBtn").addEventListener("click", calculateTripEmission);
+  </script>
+</body>
+</html>
